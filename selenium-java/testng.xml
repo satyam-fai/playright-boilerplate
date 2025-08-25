@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="TodoApp Selenium Test Suite" parallel="methods" thread-count="2">
+    
+    <test name="Forgot Password Flow Tests" preserve-order="false">
+        <classes>
+            <class name="com.todoapp.selenium.tests.ForgotPasswordTest">
+                <methods>
+                    <include name="testNavigateToForgotPasswordPage"/>
+                    <include name="testForgotPasswordPageUI"/>
+                    <include name="testEmptyEmailValidation"/>
+                    <include name="testInvalidEmailValidation"/>
+                    <include name="testSuccessfulEmailSending"/>
+                    <include name="testCompletePasswordResetFlow"/>
+                    <include name="testLoginWithNewPassword"/>
+                    <include name="testWeakPasswordValidation"/>
+                    <include name="testMismatchedPasswordValidation"/>
+                    <include name="testInvalidTokenValidation"/>
+                    <include name="testMissingTokenValidation"/>
+                    <include name="testNonExistentEmailHandling"/>
+                    <include name="testEmailPrivacy"/>
+                    <include name="testFormAccessibility"/>
+                    <include name="testLoadingStates"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    
+    <!-- Chrome Tests -->
+    <test name="Chrome Browser Tests">
+        <parameter name="browser" value="chrome"/>
+        <parameter name="headless" value="false"/>
+        <classes>
+            <class name="com.todoapp.selenium.tests.ForgotPasswordTest">
+                <methods>
+                    <include name="testCompletePasswordResetFlow"/>
+                    <include name="testLoginWithNewPassword"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    
+    <!-- Firefox Tests -->
+    <test name="Firefox Browser Tests">
+        <parameter name="browser" value="firefox"/>
+        <parameter name="headless" value="false"/>
+        <classes>
+            <class name="com.todoapp.selenium.tests.ForgotPasswordTest">
+                <methods>
+                    <include name="testCompletePasswordResetFlow"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    
+    <!-- Headless Tests -->
+    <test name="Headless Tests">
+        <parameter name="browser" value="chrome"/>
+        <parameter name="headless" value="true"/>
+        <classes>
+            <class name="com.todoapp.selenium.tests.ForgotPasswordTest">
+                <methods>
+                    <include name="testNavigateToForgotPasswordPage"/>
+                    <include name="testForgotPasswordPageUI"/>
+                    <include name="testEmptyEmailValidation"/>
+                    <include name="testInvalidEmailValidation"/>
+                    <include name="testSuccessfulEmailSending"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    
+    <!-- Smoke Tests -->
+    <test name="Smoke Tests">
+        <parameter name="browser" value="chrome"/>
+        <parameter name="headless" value="false"/>
+        <classes>
+            <class name="com.todoapp.selenium.tests.ForgotPasswordTest">
+                <methods>
+                    <include name="testCompletePasswordResetFlow"/>
+                    <include name="testLoginWithNewPassword"/>
+                    <include name="testInvalidTokenValidation"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    
+    <!-- Regression Tests -->
+    <test name="Regression Tests">
+        <parameter name="browser" value="chrome"/>
+        <parameter name="headless" value="true"/>
+        <classes>
+            <class name="com.todoapp.selenium.tests.ForgotPasswordTest"/>
+        </classes>
+    </test>
+    
+</suite>
