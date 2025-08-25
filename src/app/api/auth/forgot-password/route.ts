@@ -1,7 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import bcrypt from 'bcryptjs';
 import { sendPasswordResetEmail } from '@/lib/emailUtils';
 import {
     generateResetToken,
@@ -9,22 +6,7 @@ import {
     storeResetToken,
     getResetUrl
 } from '@/lib/passwordResetUtils';
-
-const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
-
-// Load users from file
-const loadUsers = () => {
-    try {
-        if (!fs.existsSync(USERS_FILE)) {
-            return [];
-        }
-        const data = fs.readFileSync(USERS_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Error loading users:', error);
-        return [];
-    }
-};
+import { readDataFromFile } from '@/lib/storage';
 
 export async function POST(request: NextRequest) {
     try {
@@ -39,7 +21,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Load users and check if email exists
-        const users = loadUsers();
+        const users = await readDataFromFile("users.json");
         const user = users.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
 
         if (!user) {
@@ -57,7 +39,7 @@ export async function POST(request: NextRequest) {
         const jwtToken = createResetJWT(email, resetToken);
 
         // Store reset token
-        storeResetToken(email, resetToken);
+        await storeResetToken(email, resetToken);
 
         // Generate reset URL
         const resetUrl = getResetUrl(jwtToken);

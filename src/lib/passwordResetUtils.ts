@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import fs from 'fs';
-import path from 'path';
+import { readDataFromFile, writeDataToFile } from './storage';
 
 interface ResetToken {
     email: string;
@@ -10,38 +9,24 @@ interface ResetToken {
     used: boolean;
 }
 
-const RESET_TOKENS_FILE = path.join(process.cwd(), 'data', 'resetTokens.json');
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const TOKEN_EXPIRY_HOURS = 1; // 1 hour
 
-// Ensure the data directory exists
-const ensureDataDirectory = () => {
-    const dataDir = path.dirname(RESET_TOKENS_FILE);
-    if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-    }
-};
-
-// Load reset tokens from file
-const loadResetTokens = (): ResetToken[] => {
+// Load reset tokens from storage
+const loadResetTokens = async (): Promise<ResetToken[]> => {
     try {
-        ensureDataDirectory();
-        if (!fs.existsSync(RESET_TOKENS_FILE)) {
-            return [];
-        }
-        const data = fs.readFileSync(RESET_TOKENS_FILE, 'utf8');
-        return JSON.parse(data);
+        const data = await readDataFromFile("resetTokens.json");
+        return Array.isArray(data) ? data : [];
     } catch (error) {
         console.error('Error loading reset tokens:', error);
         return [];
     }
 };
 
-// Save reset tokens to file
-const saveResetTokens = (tokens: ResetToken[]) => {
+// Save reset tokens to storage
+const saveResetTokens = async (tokens: ResetToken[]): Promise<void> => {
     try {
-        ensureDataDirectory();
-        fs.writeFileSync(RESET_TOKENS_FILE, JSON.stringify(tokens, null, 2));
+        await writeDataToFile("resetTokens.json", tokens);
     } catch (error) {
         console.error('Error saving reset tokens:', error);
         throw new Error('Failed to save reset token');
@@ -86,11 +71,11 @@ export const verifyResetJWT = (token: string): { email: string; resetToken: stri
 };
 
 // Store reset token
-export const storeResetToken = (email: string, resetToken: string): void => {
-    const tokens = loadResetTokens();
+export const storeResetToken = async (email: string, resetToken: string): Promise<void> => {
+    const tokens = await loadResetTokens();
 
     // Remove any existing tokens for this email
-    const filteredTokens = tokens.filter(token => token.email !== email);
+    const filteredTokens = tokens.filter((token: ResetToken) => token.email !== email);
 
     // Add new token
     const newToken: ResetToken = {
@@ -101,24 +86,24 @@ export const storeResetToken = (email: string, resetToken: string): void => {
     };
 
     filteredTokens.push(newToken);
-    saveResetTokens(filteredTokens);
+    await saveResetTokens(filteredTokens);
 };
 
 // Validate reset token
-export const validateResetToken = (email: string, resetToken: string): boolean => {
-    const tokens = loadResetTokens();
+export const validateResetToken = async (email: string, resetToken: string): Promise<boolean> => {
+    const tokens = await loadResetTokens();
 
     // Clean up expired tokens
     const now = Date.now();
-    const validTokens = tokens.filter(token =>
+    const validTokens = tokens.filter((token: ResetToken) =>
         token.expiresAt > now && !token.used
     );
 
     if (validTokens.length !== tokens.length) {
-        saveResetTokens(validTokens);
+        await saveResetTokens(validTokens);
     }
 
-    const token = validTokens.find(t =>
+    const token = validTokens.find((t: ResetToken) =>
         t.email === email && t.token === resetToken && !t.used
     );
 
@@ -126,30 +111,30 @@ export const validateResetToken = (email: string, resetToken: string): boolean =
 };
 
 // Mark token as used
-export const markTokenAsUsed = (email: string, resetToken: string): void => {
-    const tokens = loadResetTokens();
+export const markTokenAsUsed = async (email: string, resetToken: string): Promise<void> => {
+    const tokens = await loadResetTokens();
 
-    const tokenIndex = tokens.findIndex(t =>
+    const tokenIndex = tokens.findIndex((t: ResetToken) =>
         t.email === email && t.token === resetToken
     );
 
     if (tokenIndex !== -1) {
         tokens[tokenIndex].used = true;
-        saveResetTokens(tokens);
+        await saveResetTokens(tokens);
     }
 };
 
 // Clean up expired tokens
-export const cleanupExpiredTokens = (): void => {
-    const tokens = loadResetTokens();
+export const cleanupExpiredTokens = async (): Promise<void> => {
+    const tokens = await loadResetTokens();
     const now = Date.now();
 
-    const validTokens = tokens.filter(token =>
+    const validTokens = tokens.filter((token: ResetToken) =>
         token.expiresAt > now && !token.used
     );
 
     if (validTokens.length !== tokens.length) {
-        saveResetTokens(validTokens);
+        await saveResetTokens(validTokens);
         console.log(`Cleaned up ${tokens.length - validTokens.length} expired reset tokens`);
     }
 };

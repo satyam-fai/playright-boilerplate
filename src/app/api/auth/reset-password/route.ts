@@ -1,42 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import bcrypt from 'bcryptjs';
 import {
     verifyResetJWT,
     validateResetToken,
     markTokenAsUsed
 } from '@/lib/passwordResetUtils';
-
-const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
-
-// Load users from file
-const loadUsers = () => {
-    try {
-        if (!fs.existsSync(USERS_FILE)) {
-            return [];
-        }
-        const data = fs.readFileSync(USERS_FILE, 'utf8');
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Error loading users:', error);
-        return [];
-    }
-};
-
-// Save users to file
-const saveUsers = (users: any[]) => {
-    try {
-        const dataDir = path.dirname(USERS_FILE);
-        if (!fs.existsSync(dataDir)) {
-            fs.mkdirSync(dataDir, { recursive: true });
-        }
-        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
-    } catch (error) {
-        console.error('Error saving users:', error);
-        throw new Error('Failed to save user data');
-    }
-};
+import { readDataFromFile, writeDataToFile } from '@/lib/storage';
 
 export async function POST(request: NextRequest) {
     try {
@@ -69,7 +38,7 @@ export async function POST(request: NextRequest) {
         const { email, resetToken } = decoded;
 
         // Validate reset token
-        if (!validateResetToken(email, resetToken)) {
+        if (!(await validateResetToken(email, resetToken))) {
             return NextResponse.json(
                 { message: 'Invalid or expired reset token' },
                 { status: 400 }
@@ -77,7 +46,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Load users and find the user
-        const users = loadUsers();
+        const users = await readDataFromFile("users.json");
         const userIndex = users.findIndex((u: any) => u.email.toLowerCase() === email.toLowerCase());
 
         if (userIndex === -1) {
@@ -94,10 +63,16 @@ export async function POST(request: NextRequest) {
         users[userIndex].password = hashedPassword;
 
         // Save updated users
-        saveUsers(users);
+        const saveSuccess = await writeDataToFile("users.json", users);
+        if (!saveSuccess) {
+            return NextResponse.json(
+                { message: 'Failed to update password' },
+                { status: 500 }
+            );
+        }
 
         // Mark token as used
-        markTokenAsUsed(email, resetToken);
+        await markTokenAsUsed(email, resetToken);
 
         return NextResponse.json(
             { message: 'Password has been reset successfully' },
