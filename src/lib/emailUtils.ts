@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 const createTestAccount = async () => {
     try {
         const testAccount = await nodemailer.createTestAccount();
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
             host: 'smtp.ethereal.email',
             port: 587,
             secure: false,
@@ -21,7 +21,7 @@ const createTestAccount = async () => {
 
 // For production, use real SMTP credentials
 const createProductionTransporter = () => {
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: parseInt(process.env.SMTP_PORT || '587'),
         secure: false,
