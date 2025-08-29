@@ -25,7 +25,17 @@ export async function getTodoById(id: string): Promise<Todo | undefined> {
   return todos.find((todo: Todo) => todo.id === id);
 }
 
-// Create a new todo
+/**
+ * Create and persist a new todo item.
+ *
+ * Builds a complete Todo (generating `id`, `createdAt`, `updatedAt`) from the provided fields,
+ * applies sensible defaults for optional properties, appends it to the stored list, and writes
+ * the updated list back to "todos.json".
+ *
+ * @param todo - New todo fields. Optional properties are defaulted if omitted: `description` -> '',
+ * `priority` -> 'medium', `category` -> '', `dueDate` -> '', `completed` -> false. `userId` must be provided.
+ * @returns The newly created Todo with generated `id`, `createdAt`, and `updatedAt`.
+ */
 export async function createTodo(todo: Omit<Todo, "id" | "createdAt" | "updatedAt">): Promise<Todo> {
   const todos = await readDataFromFile("todos.json");
 
@@ -48,7 +58,13 @@ export async function createTodo(todo: Omit<Todo, "id" | "createdAt" | "updatedA
   return newTodo;
 }
 
-// Update a todo
+/**
+ * Update fields of an existing todo and persist the change.
+ *
+ * @param id - ID of the todo to update
+ * @param updates - Partial set of todo fields to replace (cannot change `id`, `createdAt`, or `userId`)
+ * @returns The updated Todo object after persisting, or `null` if a todo with the given `id` was not found
+ */
 export async function updateTodo(id: string, updates: Partial<Omit<Todo, "id" | "createdAt" | "userId">>): Promise<Todo | null> {
   const todos = await readDataFromFile("todos.json");
   const todoIndex = todos.findIndex((todo: Todo) => todo.id === id);
@@ -69,7 +85,14 @@ export async function updateTodo(id: string, updates: Partial<Omit<Todo, "id" | 
   return updatedTodo;
 }
 
-// Delete a todo
+/**
+ * Deletes a todo item by its id.
+ *
+ * Attempts to remove the todo with the given `id` from persistent storage.
+ *
+ * @param id - The id of the todo to delete.
+ * @returns `true` if a todo was found and deleted; `false` if no todo with the given `id` exists.
+ */
 export async function deleteTodo(id: string): Promise<boolean> {
   const todos = await readDataFromFile("todos.json");
   const todoIndex = todos.findIndex((todo: Todo) => todo.id === id);
