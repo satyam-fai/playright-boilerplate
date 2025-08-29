@@ -59,6 +59,18 @@ const priorityIcons = {
   high: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z'
 };
 
+/**
+ * Dashboard page component that displays and manages a user's todo list.
+ *
+ * Renders a full-page dashboard with stats, a toggleable "create task" form, and two lists
+ * (pending and completed). On mount it reads the current user from localStorage and loads
+ * that user's todos (redirects to "/login" if no user is found). Provides UI actions to
+ * create, toggle completion, and delete todos; also exposes small utilities for formatting
+ * dates and checking overdue status. Integrates with theme/context for styling and uses
+ * client-side fetch calls to the `/api/todos` endpoints for persistence.
+ *
+ * @returns The Dashboard page JSX element.
+ */
 export default function Dashboard() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);

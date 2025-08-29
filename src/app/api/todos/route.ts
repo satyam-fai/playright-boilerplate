@@ -25,7 +25,20 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/todos
+/**
+ * Create a new todo for a user.
+ *
+ * Expects a JSON request body with `title` and `userId` (required). Optional fields:
+ * `description`, `priority` (defaults to `"medium"`), `category`, and `dueDate`.
+ *
+ * Returns a JSON response:
+ * - 201: created todo object
+ * - 400: when `title` or `userId` is missing (body validation)
+ * - 500: on internal error
+ *
+ * @param request - Incoming HTTP request whose JSON body contains the todo fields described above.
+ * @returns A NextResponse with the created todo (status 201) or an error message (status 400 or 500).
+ */
 export async function POST(request: Request) {
   try {
     const { title, description, priority, category, dueDate, userId } = await request.json();
