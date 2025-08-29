@@ -10,7 +10,6 @@ A professional Next.js todo application with secure authentication and data pers
 - Responsive design with Tailwind CSS
 - Animations and transitions for enhanced UX
 - TypeScript for type safety
-- Modern React patterns
 
 ## Getting Started
 
