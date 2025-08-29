@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 // POST /api/todos
 export async function POST(request: Request) {
   try {
-    const { title, userId } = await request.json();
+    const { title, description, priority, category, dueDate, userId } = await request.json();
 
     if (!title || !userId) {
       return NextResponse.json(
@@ -39,6 +39,10 @@ export async function POST(request: Request) {
 
     const newTodo = await createTodo({
       title,
+      description,
+      priority: priority || 'medium',
+      category,
+      dueDate,
       userId,
       completed: false,
     });
