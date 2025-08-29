@@ -3,6 +3,10 @@ import { readDataFromFile, writeDataToFile } from "@/lib/fileUtils";
 export interface Todo {
   id: string;
   title: string;
+  description?: string;
+  priority: 'low' | 'medium' | 'high';
+  category?: string;
+  dueDate?: string;
   completed: boolean;
   userId: string;
   createdAt: string;
@@ -24,17 +28,23 @@ export async function getTodoById(id: string): Promise<Todo | undefined> {
 // Create a new todo
 export async function createTodo(todo: Omit<Todo, "id" | "createdAt" | "updatedAt">): Promise<Todo> {
   const todos = await readDataFromFile("todos.json");
-  
+
   const newTodo: Todo = {
     id: Date.now().toString(),
-    ...todo,
+    title: todo.title,
+    description: todo.description || '',
+    priority: todo.priority || 'medium',
+    category: todo.category || '',
+    dueDate: todo.dueDate || '',
+    completed: todo.completed || false,
+    userId: todo.userId,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  
+
   todos.push(newTodo);
   await writeDataToFile("todos.json", todos);
-  
+
   return newTodo;
 }
 
@@ -42,20 +52,20 @@ export async function createTodo(todo: Omit<Todo, "id" | "createdAt" | "updatedA
 export async function updateTodo(id: string, updates: Partial<Omit<Todo, "id" | "createdAt" | "userId">>): Promise<Todo | null> {
   const todos = await readDataFromFile("todos.json");
   const todoIndex = todos.findIndex((todo: Todo) => todo.id === id);
-  
+
   if (todoIndex === -1) {
     return null;
   }
-  
+
   const updatedTodo = {
     ...todos[todoIndex],
     ...updates,
     updatedAt: new Date().toISOString(),
   };
-  
+
   todos[todoIndex] = updatedTodo;
   await writeDataToFile("todos.json", todos);
-  
+
   return updatedTodo;
 }
 
@@ -63,13 +73,13 @@ export async function updateTodo(id: string, updates: Partial<Omit<Todo, "id" | 
 export async function deleteTodo(id: string): Promise<boolean> {
   const todos = await readDataFromFile("todos.json");
   const todoIndex = todos.findIndex((todo: Todo) => todo.id === id);
-  
+
   if (todoIndex === -1) {
     return false;
   }
-  
+
   todos.splice(todoIndex, 1);
   await writeDataToFile("todos.json", todos);
-  
+
   return true;
 }
